@@ -94,7 +94,7 @@ video_placeholder = right_col.empty()
 # Function to display live video in Streamlit
 def display_live_video():
     try:
-        video_url = "http://localhost:5000/video_feed"
+        video_url = "http://gasdet-flask_service-1:5000/video_feed"
         video_bytes = requests.get(video_url, stream=True)
         bytes_data = bytes()
 
@@ -124,7 +124,8 @@ def display_live_video():
 # Function to fetch and update stats
 def fetch_stats():
     try:
-        response = requests.get("http://localhost:5000/get_stats")  # Ensure the correct URL
+        #response = requests.get("http://localhost:5000/get_stats")  # Ensure the correct URL
+        response = requests.get("http://flask_service:5000/get_stats")
         if response.status_code == 200:
             stats = response.json()
             st.write(f"Stats Fetched: {stats}")  # Log for debugging purposes
@@ -164,14 +165,14 @@ col1, col2 = st.columns(2)
 # Fetch and plot leakage and human activity events
 if st.sidebar.button("Generate Reports"):
     with col1:
-        response = requests.get(f"http://localhost:5000/leakage_events?start_date={start_date}&end_date={end_date}")
+        response = requests.get(f"http://flask_service:5000/leakage_events?start_date={start_date}&end_date={end_date}")
         if response.status_code == 200:
             st.image(response.content, caption="Leakage Events Bar Chart", use_column_width=True)
         else:
             st.write("No leakage events found.")
 
     with col2:
-        response = requests.get(f"http://localhost:5000/human_activity_events?start_date={start_date}&end_date={end_date}")
+        response = requests.get(f"http://flask_service:5000/human_activity_events?start_date={start_date}&end_date={end_date}")
         if response.status_code == 200:
             st.image(response.content, caption="Human Activity Events Bar Chart", use_column_width=True)
         else:

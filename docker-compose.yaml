@@ -10,6 +10,14 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=development
+    depends_on:
+      - mongodb  # Ensure MongoDB starts first
+    networks:
+      - app-network
+    devices:
+      - "/dev/video0:/dev/video0"  # Share the host's /dev/video0 with the container
+    user: "1000:1000"
+    privileged: true  # Gives the container extended permissions to access devices
 
   streamlit_service:
     build:
@@ -20,3 +28,17 @@ services:
       - "8501:8501"
     depends_on:
       - flask_service
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+

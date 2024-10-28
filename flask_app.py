@@ -19,10 +19,12 @@ import matplotlib.pyplot as plt
 app = Flask(__name__)
 
 # MongoDB Configuration (Replace with your own)
-MONGO_URI = "mongodb://localhost:27017"
+
+MONGO_URI = "mongodb://mongodb:27017"  
 client = MongoClient(MONGO_URI)
 db = client["GasLeakage"]
 collection = db["events"]
+
 
 # YOLO Model loading
 model = YOLO("./best.pt")
@@ -76,7 +78,8 @@ def process_video(video):
     global human_activity_start_time, last_human_activity_time
     global total_leakage_count, total_human_activity_count
 
-    cap = cv2.VideoCapture(video)
+    #cap = cv2.VideoCapture(video)
+    cap = cv2.VideoCapture(video, cv2.CAP_V4L2)
     if not cap.isOpened():
         print("Error: Unable to open video source.")
         return
@@ -185,15 +188,19 @@ def store_event_in_mongodb(event_type, start_time, end_time):
         print(f"Error inserting {event_type} event into MongoDB: {e}")
 
 
-#stream_url = "http://192.168.100.7:8080/video"  # Example from IP Webcam app
-# stream_url = "http://192.168.212.76:8080/video"  # Example from IP Webcam app
-#stream_url = "http://192.168.0.14:8080/video"  # Example from IP Webcam app
-#stream_url = "http://10.109.5.173:8080/video"  # Example corrected URL for an IP webcam
-stream_url = 0
-
+#stream_url = 0
+#@app.route('/video_feed')
+#def video_feed():
+#    return Response(process_video(stream_url), mimetype='multipart/x-mixed-replace; boundary=frame')
 @app.route('/video_feed')
 def video_feed():
-    return Response(process_video(stream_url), mimetype='multipart/x-mixed-replace; boundary=frame')
+    # Retry until the file exists and can be opened
+    while not os.path.exists('/app/video_feed.mjpeg'):
+        print("Waiting for video feed to be available...")
+        time.sleep(1)  # Wait 1 second before retrying
+
+    # Open the file and stream once it's available
+    return Response(open('/app/video_feed.mjpeg', 'rb'), mimetype='multipart/x-mixed-replace; boundary=frame')
 # Flask API route to get real-time stats
 
 @app.route('/get_stats', methods=['GET'])
@@ -293,6 +300,5 @@ def human_activity_events_api():
         return send_file(img, mimetype='image/png')
     else:
         return jsonify({"message": "No human activity events found."}), 404
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)

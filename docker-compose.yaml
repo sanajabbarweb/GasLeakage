@@ -2,30 +2,35 @@ version: '3.8'
 
 services:
   flask_service:
-    image: sanajabbar88/gasdet-flask_service:latest
-    command: ["python", "/app/flask_app.py", "--host=0.0.0.0", "--port=5000"]  # Replace with the actual entry command for your Flask app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "flask_app.py"]
     ports:
       - "5000:5000"
     environment:
-       - FLASK_ENV=development
+      - FLASK_ENV=development
+      - CAMERA_IP_URL=http://<ip_address>:<port>/path  # Set the IP camera URL here
     depends_on:
-      - mongodb
+      - mongodb  # Ensure MongoDB starts first
     networks:
       - app-network
-    volumes:
-      - .:/app  # Syncs all files from the current directory to /app in the container
+    user: "1000:1000"
+    privileged: true  # Only if other privileged operations are required
 
   streamlit_service:
-    image: sanajabbar88/gasdet-streamlit_service:latest
-    command: ["streamlit", "run", "/app/streamlit_app.py", "--server.port=8501", "--server.headless=true"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.headless=true"]
     ports:
       - "8501:8501"
     depends_on:
       - flask_service
     networks:
       - app-network
-    volumes:
-      - .:/app  # optional, for local development
+    environment:
+      - CAMERA_IP_URL=http://<ip_address>:<port>/path  # Set the IP camera URL here
 
   mongodb:
     image: mongo:latest

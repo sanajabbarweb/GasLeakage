@@ -71,8 +71,7 @@ human_activity_events = []
 total_leakage_count = 0
 total_human_activity_count = 0
 
-#video_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Format as needed
-#video_name = "/app/" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".mp4"
+
 
 def process_video(video):
     global leakage_active, human_activity_active
@@ -174,7 +173,7 @@ def process_video(video):
     #writer.close()
 
     # Return path to the saved video file if needed
-    return str(video_name+".mp4")
+    #return str(video_name+".mp4")
 
 # MongoDB event storage (without frame numbers)
 def store_event_in_mongodb(event_type, start_time, end_time):
@@ -192,28 +191,15 @@ def store_event_in_mongodb(event_type, start_time, end_time):
         print(f"Error inserting {event_type} event into MongoDB: {e}")
 
 
-#stream_url = 0
-#@app.route('/video_feed')
-#def video_feed():
-#    return Response(process_video(stream_url), mimetype='multipart/x-mixed-replace; boundary=frame')
-# @app.route('/')
-# def home():
-#     return "Hello, World!"
-# @app.route('/video_feed')
-# def video_feed():
-#     # Retry until the file exists and can be opened
-#     while not os.path.exists('/app/video_feed.mjpeg'):
-#         print("Waiting for video feed to be available...")
-#         time.sleep(1)  # Wait 1 second before retrying
-        # Open the file and stream once it's available
-    #return Response(open('/app/video_feed.mjpeg', 'rb'), mimetype='multipart/x-mixed-replace; boundary=frame')
-# Flask API route to get real-time stats
+
 @app.route('/video_feed')
 def video_feed():
-    rtsp_url = "http://192.168.100.7:8080/video"  # Ensure this is correct
+
+    camera_url = os.getenv("CAMERA_IP_URL") # set your camera IP here
+
     # Replace with your CCTV stream URL
 
-    return Response(process_video(rtsp_url), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(process_video(camera_url), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/get_stats', methods=['GET'])
 def get_stats():

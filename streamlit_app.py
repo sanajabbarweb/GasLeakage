@@ -94,7 +94,7 @@ video_placeholder = right_col.empty()
 # Function to display live video in Streamlit
 def display_live_video():
     try:
-        video_url = "http://gasdet-flask_service-1:5000/video_feed"
+        video_url = "http://flask_service:5000/video_feed"
         video_bytes = requests.get(video_url, stream=True)
         bytes_data = bytes()
 
@@ -114,7 +114,7 @@ def display_live_video():
 
                 # Resize the video frame
                 img_rgb_resized = cv2.resize(img_rgb, (800, 300))
-                
+
                 # Update the placeholder with the current frame
                 video_placeholder.image(img_rgb_resized, use_column_width=False)
 
@@ -140,7 +140,7 @@ def fetch_stats():
 # Function to update the live stats on Streamlit
 def update_stats():
     stats = fetch_stats()
-    
+
     if stats:
         leakage_count = stats.get("leakage", 0)
         human_activity_count = stats.get("human_activity", 0)
@@ -183,11 +183,10 @@ def run_dashboard():
     display_live_video()  # Update live video
     update_stats()  # Update live stats
     time.sleep(5)  # Wait for 5 seconds before updating again
-    
+
     # Trigger app rerun
-    st.rerun()  
+    st.rerun()
 
 # Call the dashboard function
 
 run_dashboard()
-

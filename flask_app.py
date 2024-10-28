@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 # MongoDB Configuration (Replace with your own)
 
-MONGO_URI = "mongodb://mongodb:27017"  
+MONGO_URI = "mongodb://mongodb:27017"
 client = MongoClient(MONGO_URI)
 db = client["GasLeakage"]
 collection = db["events"]
@@ -71,7 +71,9 @@ human_activity_events = []
 total_leakage_count = 0
 total_human_activity_count = 0
 
-video_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Format as needed
+#video_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Format as needed
+#video_name = "/app/" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".mp4"
+
 def process_video(video):
     global leakage_active, human_activity_active
     global leakage_start_time, last_leakage_time
@@ -79,18 +81,20 @@ def process_video(video):
     global total_leakage_count, total_human_activity_count
 
     #cap = cv2.VideoCapture(video)
-    cap = cv2.VideoCapture(video, cv2.CAP_V4L2)
+    #cap = cv2.VideoCapture(video, cv2.CAP_V4L2)
+    cap = cv2.VideoCapture(video)
+
     if not cap.isOpened():
         print("Error: Unable to open video source.")
         return
 
     # Video properties
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-   
+
 
     # Direct-to-disk video storage
-    
-    writer = imageio.get_writer(video_name+".mp4", fps=fps, codec="libx264")
+
+    #writer = imageio.get_writer(video_name+".mp4", fps=fps, codec="libx264")
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -154,20 +158,20 @@ def process_video(video):
                 human_activity_active = False
 
         # Convert frame to RGB for imageio writer
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        writer.append_data(frame_rgb)  # Write frame to output_video.mp4 in real-time
+        #frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        #writer.append_data(frame_rgb)  # Write frame to output_video.mp4 in real-time
 
         # Stream frame to Flask/Streamlit
         _, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
         time.sleep(0.03)
 
     # Release resources
     cap.release()
-    writer.close()
+    #writer.close()
 
     # Return path to the saved video file if needed
     return str(video_name+".mp4")
@@ -192,29 +196,43 @@ def store_event_in_mongodb(event_type, start_time, end_time):
 #@app.route('/video_feed')
 #def video_feed():
 #    return Response(process_video(stream_url), mimetype='multipart/x-mixed-replace; boundary=frame')
+# @app.route('/')
+# def home():
+#     return "Hello, World!"
+# @app.route('/video_feed')
+# def video_feed():
+#     # Retry until the file exists and can be opened
+#     while not os.path.exists('/app/video_feed.mjpeg'):
+#         print("Waiting for video feed to be available...")
+#         time.sleep(1)  # Wait 1 second before retrying
+        # Open the file and stream once it's available
+    #return Response(open('/app/video_feed.mjpeg', 'rb'), mimetype='multipart/x-mixed-replace; boundary=frame')
+# Flask API route to get real-time stats
 @app.route('/video_feed')
 def video_feed():
-    # Retry until the file exists and can be opened
-    while not os.path.exists('/app/video_feed.mjpeg'):
-        print("Waiting for video feed to be available...")
-        time.sleep(1)  # Wait 1 second before retrying
+    rtsp_url = "http://192.168.100.7:8080/video"  # Ensure this is correct
+    # Replace with your CCTV stream URL
 
-    # Open the file and stream once it's available
-    return Response(open('/app/video_feed.mjpeg', 'rb'), mimetype='multipart/x-mixed-replace; boundary=frame')
-# Flask API route to get real-time stats
+    return Response(process_video(rtsp_url), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/get_stats', methods=['GET'])
 def get_stats():
     # Convert datetime objects to string if they are not None
     latest_leakage_time_str = stats_data["latest_leakage_time"].strftime('%Y-%m-%d %H:%M:%S') if stats_data["latest_leakage_time"] else None
     latest_human_activity_time_str = stats_data["latest_human_activity_time"].strftime('%Y-%m-%d %H:%M:%S') if stats_data["latest_human_activity_time"] else None
-    
+
     return jsonify({
         "leakage": stats_data["leakage"],  # Example placeholder, ensure actual logic
         "human_activity": stats_data["human_activity"],
         "latest_leakage_time": latest_leakage_time_str,
         "latest_human_activity_time": latest_human_activity_time_str
     })
+@app.route('/ffmpeg_version')
+def ffmpeg_version():
+    import subprocess
+    result = subprocess.run(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return result.stdout.decode('utf-8')
+
 
 # Event count retrieval function from MongoDB
 def get_event_counts_per_day(event_type, start_date, end_date):
@@ -235,22 +253,22 @@ def plot_event_counts(event_counts, event_type):
 
     # Set the figure size and background color
     fig, ax = plt.subplots(figsize=(10, 4), facecolor='white')  # White background for the figure
-    
+
     # Plot the bars with a light color for better contrast on white background
     ax.bar(dates, counts, color='lightblue', edgecolor='black')
-    
+
     # Set title and labels with increased font sizes and black color
     ax.set_title(f"{event_type.capitalize()} Events Per Day", color='black', fontsize=16)
     ax.set_xlabel("Date", color='black', fontsize=12)
     ax.set_ylabel("Count", color='black', fontsize=12)
-    
+
     # Customize tick colors and font sizes
     ax.tick_params(axis='x', colors='black', labelsize=10)
     ax.tick_params(axis='y', colors='black', labelsize=10)
-    
+
     # Add light gray gridlines for better readability
     #ax.grid(True, which='both', axis='y', linestyle='--', linewidth=0.7, color='lightgray')
-    
+
     # Rotate x-tick labels for better readability
     plt.xticks(rotation=20, ha='right')
 
@@ -259,7 +277,7 @@ def plot_event_counts(event_counts, event_type):
     plt.savefig(img, format='png', bbox_inches='tight', facecolor='white')  # Ensure the saved image has a white background
     img.seek(0)
     plt.close(fig)  # Close the figure to free up memory
-    
+
     return img
 
 
@@ -267,11 +285,11 @@ def plot_event_counts(event_counts, event_type):
 def leakage_events_api():
     start_date = request.args.get('start_date', default=(datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
     end_date = request.args.get('end_date', default= (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d'))
-    
+
     start_date = datetime.strptime(start_date, '%Y-%m-%d')
     end_date = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1, seconds=-1)
 
-    
+
 
     # Fetch the leakage events
     leakage_counts = get_event_counts_per_day("leakage", start_date, end_date)

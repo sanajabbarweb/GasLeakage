@@ -3,29 +3,29 @@ version: '3.8'
 services:
   flask_service:
     image: sanajabbar88/gasdet-flask_service:latest
-    command: ["python", "flask_app.py"]  # Replace with the actual entry command for your Flask app
+    command: ["python", "/app/flask_app.py", "--host=0.0.0.0", "--port=5000"]  # Replace with the actual entry command for your Flask app
     ports:
       - "5000:5000"
     environment:
-      - FLASK_ENV=development
+       - FLASK_ENV=development
     depends_on:
       - mongodb
     networks:
       - app-network
-    devices:
-      - "/dev/video0:/dev/video0"
-    user: "1000:1000"
-    privileged: true
+    volumes:
+      - .:/app  # Syncs all files from the current directory to /app in the container
 
   streamlit_service:
     image: sanajabbar88/gasdet-streamlit_service:latest
-    command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.headless=true"]
+    command: ["streamlit", "run", "/app/streamlit_app.py", "--server.port=8501", "--server.headless=true"]
     ports:
       - "8501:8501"
     depends_on:
       - flask_service
     networks:
       - app-network
+    volumes:
+      - .:/app  # optional, for local development
 
   mongodb:
     image: mongo:latest

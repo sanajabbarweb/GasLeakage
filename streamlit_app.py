@@ -8,9 +8,69 @@ import time
 st.set_page_config(layout="wide", page_title="Leakage Monitoring Dashboard")
 
 # Custom styling
+# Custom styling
 st.markdown("""
     <style>
-    /* (Same styling as before) */
+    body {
+        background-color: #000000;
+        color: white;
+    }
+    .stApp {
+        background-color: #000000;
+    }
+    h1,p {
+        color: white;
+        font-family: 'Arial', sans-serif;
+    }
+    h3, h2 {
+        color: white;
+        font-family: 'Arial', sans-serif;
+    }
+    .block-container {
+        padding: 1rem;
+    }
+    .css-12oz5g7 {
+        background-color: #1c1c1c !important;
+        padding: 1.5rem !important;
+        border-radius: 15px !important;
+    }
+    .css-1lcbmhc {
+        color: #ffffff !important;
+        font-size: 20px;
+        font-weight: bold;
+        font-family: 'Arial', sans-serif;
+    }
+    .css-1d391kg {
+        color: #ffffff !important;
+        font-size: 14px;
+        font-family: 'Arial', sans-serif;
+    }
+    .stDateInput input {
+        background-color: #333333 !important;
+        color: #ffffff !important;
+        border: 1px solid #555555 !important;
+        border-radius: 8px !important;
+        padding: 0.7rem !important;
+        font-size: 14px;
+    }
+    .stButton > button {
+        color: white !important;
+        background-color: #333333 !important;
+        border-radius: 8px !important;
+        padding: 0.7rem 1rem !important;
+        font-size: 14px;
+        border: 1px solid #555555 !important;
+    }
+    .stButton > button:hover {
+        background-color: #555555 !important;
+    }
+    .stImage > img {
+        max-width: 550px;
+        margin: auto;
+        display: block;
+        border-radius: 10px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+    }
     </style>
     """, unsafe_allow_html=True)
 

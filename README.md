@@ -21,7 +21,7 @@ To access the GasLeakage application code, clone the master branch of the reposi
 
 git clone -b master https://github.com/sanajabbarweb/GasLeakage.git
 
-#### Step 3: Navigate to the Project Directory
+### Step 3: Navigate to the Project Directory
 
 cd GasLeakage
 

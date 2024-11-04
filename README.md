@@ -28,6 +28,7 @@ cd GasLeakage
 ### Step 4: Download Images from DockerHub
 
 docker pull sanajabbar88/gasdet-streamlit_service:latest
+
 docker pull sanajabbar88/gasdet-flask_service:latest
 
 ### Step 5: Modify Camera Stream URL for Live Streaming

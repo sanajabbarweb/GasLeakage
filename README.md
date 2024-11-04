@@ -49,7 +49,7 @@ http://localhost:8501/
 
 
 ### Step 8: Stop the Streamlit App
-To close the app, press **Ctrl+C**, then stop Docker using the following command:
+To close the app, press **Ctrl+C**, and if need to stop Docker the use the following command:
 
 docker-compose down
 
